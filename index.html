@@ -524,7 +524,6 @@
     </div>
 
     <script>
-        // Sample puzzle data
         const todaysPuzzle = {
             words: [
                 'NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL',
@@ -556,20 +555,77 @@
             ]
         };
 
-        let gameState = {
-            words: [...todaysPuzzle.words],
-            selectedWords: [],
-            solvedGroups: [],
-            mistakes: 0,
-            gameWon: false,
-            previousGuesses: [],
-            guessHistory: []
-        };
+        let gameState = {};
 
-        function initGame() {
+        // --- NEW: Function to save the game state to localStorage ---
+        function saveGameState() {
+            const today = new Date().toISOString().split('T')[0]; // Gets date as "YYYY-MM-DD"
+            const dataToSave = {
+                date: today,
+                state: gameState
+            };
+            localStorage.setItem('historyConnectionsState', JSON.stringify(dataToSave));
+        }
+
+        // --- MODIFIED: This function now loads from storage or starts a new game ---
+        function loadAndInitializeGame() {
+            const today = new Date().toISOString().split('T')[0];
+            const savedDataJSON = localStorage.getItem('historyConnectionsState');
+
+            let savedData;
+            if (savedDataJSON) {
+                savedData = JSON.parse(savedDataJSON);
+            }
+
+            // Check if there is saved data for today
+            if (savedData && savedData.date === today) {
+                gameState = savedData.state;
+                // Restore the visual state of the game
+                reRenderGame();
+            } else {
+                // No saved data for today, so start a fresh game
+                startNewGame();
+            }
+        }
+        
+        function startNewGame() {
+            gameState = {
+                words: [...todaysPuzzle.words],
+                selectedWords: [],
+                solvedGroups: [],
+                mistakes: 0,
+                gameWon: false,
+                previousGuesses: [],
+                guessHistory: []
+            };
             shuffleArray(gameState.words);
+            saveGameState(); // Save the initial state of the new game
+            reRenderGame();
+        }
+
+        // --- NEW: Function to render the board based on the current gameState ---
+        function reRenderGame() {
+            // Clear previous elements
+            document.getElementById('solved-groups').innerHTML = '';
+            document.getElementById('grid').innerHTML = '';
+
+            // Render solved groups
+            gameState.solvedGroups.forEach(group => renderSolvedGroup(group));
+            
+            // Render the grid of remaining words
             renderGrid();
+            
+            // Update stats
             updateStats();
+
+            // If game is over, show the appropriate modal
+            if (gameState.gameWon) {
+                if (gameState.mistakes >= 4) {
+                    showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
+                } else {
+                    showModal('🎉', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
+                }
+            }
         }
 
         function shuffleArray(array) {
@@ -621,6 +677,7 @@
             }
             
             const correctGroup = todaysPuzzle.groups.find(group => 
+                !gameState.solvedGroups.some(sg => sg.category === group.category) && // Ensure group isn't already solved
                 gameState.selectedWords.every(word => group.words.includes(word)) &&
                 group.words.every(word => gameState.selectedWords.includes(word))
             );
@@ -632,9 +689,6 @@
                 gameState.selectedWords = [];
                 
                 showMessage(`Correct! ${correctGroup.category}`, 'success');
-                renderSolvedGroup(correctGroup);
-                renderGrid();
-                updateStats();
                 
                 if (gameState.solvedGroups.length === 4) {
                     gameWon();
@@ -657,13 +711,14 @@
                 
                 gameState.mistakes++;
                 gameState.selectedWords = [];
-                renderGrid();
-                updateStats();
                 
                 if (gameState.mistakes >= 4) {
                     gameOver();
                 }
             }
+
+            saveGameState(); // --- MODIFIED: Save state after every guess
+            reRenderGame();
         }
 
         function renderSolvedGroup(group) {
@@ -671,7 +726,10 @@
             const groupDiv = document.createElement('div');
             groupDiv.className = `solved-group difficulty-${group.difficulty}`;
             
-            group.words.forEach(word => {
+            // Re-order words to match puzzle definition for consistent look
+            const orderedWords = group.words.sort((a,b) => todaysPuzzle.words.indexOf(a) - todaysPuzzle.words.indexOf(b));
+
+            orderedWords.forEach(word => {
                 const wordCard = document.createElement('div');
                 wordCard.className = 'word-card correct';
                 wordCard.textContent = word;
@@ -704,6 +762,7 @@
         function gameWon() {
             gameState.gameWon = true;
             showMessage('Congratulations! You solved today\'s puzzle!', 'success');
+            saveGameState();
             
             setTimeout(() => {
                 showModal('🎉', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
@@ -712,66 +771,11 @@
 
         function gameOver() {
             gameState.gameWon = true;
-            showMessage('Game Over! Better luck tomorrow!', 'error');
-            
-            const unsolvedGroups = todaysPuzzle.groups.filter(group => 
-                !gameState.solvedGroups.some(solved => solved.category === group.category)
-            );
-            
-            revealUnsolvedGroups(unsolvedGroups, 0);
-        }
-
-        function revealUnsolvedGroups(unsolvedGroups, index) {
-            if (index >= unsolvedGroups.length) {
-                setTimeout(() => {
-                    showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
-                }, 1000);
-                return;
-            }
-
-            const group = unsolvedGroups[index];
-            
-            gameState.words = gameState.words.filter(word => !group.words.includes(word));
-            
-            showMessage(`${group.category}: ${group.words.join(', ')}`, 'warning');
-            
-            renderSolvedGroupWithAnimation(group, () => {
-                renderGrid();
-                
-                setTimeout(() => {
-                    revealUnsolvedGroups(unsolvedGroups, index + 1);
-                }, 2000);
-            });
-        }
-
-        function renderSolvedGroupWithAnimation(group, callback) {
-            const solvedGroupsContainer = document.getElementById('solved-groups');
-            const groupDiv = document.createElement('div');
-            groupDiv.className = `solved-group difficulty-${group.difficulty}`;
-            groupDiv.style.opacity = '0';
-            groupDiv.style.transform = 'translateY(-20px)';
-            groupDiv.style.transition = 'all 0.5s ease';
-            
-            group.words.forEach(word => {
-                const wordCard = document.createElement('div');
-                wordCard.className = 'word-card correct';
-                wordCard.textContent = word;
-                groupDiv.appendChild(wordCard);
-            });
-            
-            const title = document.createElement('div');
-            title.className = 'category-title';
-            title.textContent = group.category;
-            groupDiv.appendChild(title);
-            
-            solvedGroupsContainer.appendChild(groupDiv);
+            saveGameState(); // Save the final game over state
             
             setTimeout(() => {
-                groupDiv.style.opacity = '1';
-                groupDiv.style.transform = 'translateY(0)';
-                
-                setTimeout(callback, 500);
-            }, 100);
+                showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
+            }, 500);
         }
 
         function showModal(emoji, title, message) {
@@ -795,21 +799,19 @@
                 const row = document.createElement('div');
                 row.className = 'modal-guess-row';
                 
-                for (let i = 0; i < 4; i++) {
-                    const circle = document.createElement('div');
-                    circle.className = 'modal-guess-circle';
-                    
-                    if (guess.type === 'correct') {
-                        circle.classList.add('guess-correct');
-                    } else if (guess.type === 'one-away') {
-                        circle.classList.add('guess-one-away');
-                    } else {
-                        circle.classList.add('guess-wrong');
-                    }
-                    
-                    row.appendChild(circle);
+                // Represent guess with a single square for simplicity in this view
+                const circle = document.createElement('div');
+                circle.className = 'modal-guess-circle';
+                
+                if (guess.type === 'correct') {
+                    circle.classList.add('guess-correct');
+                } else if (guess.type === 'one-away') {
+                    circle.classList.add('guess-one-away');
+                } else {
+                    circle.classList.add('guess-wrong');
                 }
                 
+                row.appendChild(circle);
                 guessGrid.appendChild(row);
             });
         }
@@ -832,7 +834,6 @@
         }
 
         function shareResults() {
-            // Get the current date for context, similar to Wordle
             const today = new Date();
             const dateString = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             const link = 'https://historyconnections.netlify.app/';
@@ -841,18 +842,15 @@
             const difficultyOrder = ['yellow', 'green', 'blue', 'purple'];
             let emojiGrid = '';
 
-            // Create a sorted list of the solved groups based on difficulty
             const sortedGroups = [...gameState.solvedGroups].sort((a, b) => {
                 return difficultyOrder.indexOf(a.difficulty) - difficultyOrder.indexOf(b.difficulty);
             });
 
-            // Build the emoji grid from the sorted list
             sortedGroups.forEach(group => {
                 const difficultyIndex = difficultyOrder.indexOf(group.difficulty);
                 emojiGrid += emoji[difficultyIndex].repeat(4) + '\n';
             });
 
-            // Construct the final text to be shared
             let result = `History Connections - ${dateString}\n\n${emojiGrid}\nPlay the game:\n${link}`;
 
             if (navigator.share) {
@@ -871,7 +869,6 @@
         document.getElementById('submit').addEventListener('click', submitGuess);
         document.getElementById('shuffle').addEventListener('click', shuffleWords);
         document.getElementById('deselect').addEventListener('click', deselectAll);
-        document.getElementById('share-btn').addEventListener('click', shareResults);
         document.getElementById('modal-share-btn').addEventListener('click', shareResults);
         document.getElementById('modal-close').addEventListener('click', hideModal);
         
@@ -881,8 +878,8 @@
             }
         });
 
-        // Initialize game
-        initGame();
+        // Initialize game on page load
+        loadAndInitializeGame();
     </script>
 </body>
 </html>
