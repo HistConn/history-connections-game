@@ -297,7 +297,6 @@
             color: #2E3C46;
         }
         
-        /* --- NEW: Styles for the close button container --- */
         .modal-close-container {
             display: flex;
             align-items: center;
@@ -347,38 +346,32 @@
             color: #333;
         }
 
-        .modal-stats {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
         .modal-guess-grid {
             margin: 20px 0;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* --- NEW: Row container for guess squares --- */
+        .modal-guess-row {
+            display: flex;
             gap: 6px;
         }
 
-        .modal-guess-square { /* RENAMED from circle for clarity */
-            width: 16px;
-            height: 16px;
+        .modal-guess-square {
+            width: 20px;
+            height: 20px;
             border-radius: 4px;
             display: inline-block;
         }
-
-        .guess-correct { background: #28a745; }
-        .guess-wrong { background: #dc3545; }
-        .guess-one-away { background: #ffc107; }
-
-        .modal-stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            font-weight: 600;
-        }
+        
+        /* --- NEW: Specific background colors for guess squares --- */
+        .guess-sq-yellow { background-color: #f1c40f; }
+        .guess-sq-green { background-color: #2ecc71; }
+        .guess-sq-blue { background-color: #3498db; }
+        .guess-sq-purple { background-color: #9b59b6; }
 
         .share-btn {
             background-color: #8C5A2D;
@@ -450,9 +443,7 @@
         </div>
 
         <div id="message" class="message"></div>
-
         <div id="solved-groups"></div>
-        
         <div id="grid" class="grid"></div>
         
         <div class="controls">
@@ -473,7 +464,7 @@
                 </div>
                 <div class="modal-content">
                     <div id="modal-emoji" class="modal-emoji">🎉</div>
-                    <div id="modal-message" class="modal-message">Congratulations! You solved today's puzzle!</div>
+                    <div id="modal-message" class="modal-message"></div>
                     <div id="modal-guess-grid" class="modal-guess-grid"></div>
                     <button id="modal-share-btn" class="share-btn">Share Results</button>
                 </div>
@@ -483,6 +474,7 @@
 
     <script>
         const todaysPuzzle = {
+            puzzleNumber: 1, // Added for sharing context
             words: [
                 'NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL',
                 'SWORD', 'SPEAR', 'BOW', 'CATAPULT',
@@ -530,7 +522,7 @@
             }
             if (savedData && savedData.date === today) {
                 gameState = savedData.state;
-                reRenderGame();
+                reRenderGame(false); // Don't show modal on initial load
             } else {
                 startNewGame();
             }
@@ -544,21 +536,21 @@
                 mistakes: 0,
                 gameWon: false,
                 previousGuesses: [],
-                guessHistory: []
+                guessHistory: [] // Will now store arrays of difficulties
             };
             shuffleArray(gameState.words);
             saveGameState();
-            reRenderGame();
+            reRenderGame(false);
         }
 
-        function reRenderGame() {
+        function reRenderGame(showEndGameModal) {
             document.getElementById('solved-groups').innerHTML = '';
             document.getElementById('grid').innerHTML = '';
             gameState.solvedGroups.forEach(group => renderSolvedGroup(group));
             renderGrid();
             updateStats();
             toggleGameControls(gameState.gameWon);
-            if (gameState.gameWon) {
+            if (showEndGameModal && gameState.gameWon) {
                 if (gameState.mistakes >= 4) {
                     showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
                 } else {
@@ -567,13 +559,11 @@
             }
         }
 
-        // --- NEW: Function to show/hide game controls ---
         function toggleGameControls(isGameOver) {
             const shuffleBtn = document.getElementById('shuffle');
             const submitBtn = document.getElementById('submit');
             const deselectBtn = document.getElementById('deselect');
             const viewResultsBtn = document.getElementById('view-results-btn');
-
             if (isGameOver) {
                 shuffleBtn.style.display = 'none';
                 submitBtn.style.display = 'none';
@@ -627,13 +617,19 @@
                 showMessage('You already tried that combination!', 'error');
                 return;
             }
+
+            // --- NEW: Record the detailed guess representation ---
+            const guessRepresentation = gameState.selectedWords.map(word => {
+                return todaysPuzzle.groups.find(group => group.words.includes(word)).difficulty;
+            });
+            gameState.guessHistory.push(guessRepresentation);
+
             const correctGroup = todaysPuzzle.groups.find(group => 
                 !gameState.solvedGroups.some(sg => sg.category === group.category) &&
-                gameState.selectedWords.every(word => group.words.includes(word)) &&
-                group.words.every(word => gameState.selectedWords.includes(word))
+                gameState.selectedWords.every(word => group.words.includes(word))
             );
+
             if (correctGroup) {
-                gameState.guessHistory.push({ type: 'correct' });
                 gameState.solvedGroups.push(correctGroup);
                 gameState.words = gameState.words.filter(word => !correctGroup.words.includes(word));
                 showMessage(`Correct! ${correctGroup.category}`, 'success');
@@ -641,13 +637,12 @@
             } else {
                 gameState.previousGuesses.push(sortedGuess);
                 const oneAwayGroup = todaysPuzzle.groups.some(group => 
+                    !gameState.solvedGroups.some(sg => sg.category === group.category) &&
                     gameState.selectedWords.filter(word => group.words.includes(word)).length === 3
                 );
                 if (oneAwayGroup) {
-                    gameState.guessHistory.push({ type: 'one-away' });
                     showMessage('One away! Try again.', 'warning');
                 } else {
-                    gameState.guessHistory.push({ type: 'wrong' });
                     showMessage('Not quite right. Try again!', 'error');
                 }
                 gameState.mistakes++;
@@ -655,7 +650,7 @@
             }
             gameState.selectedWords = [];
             saveGameState();
-            reRenderGame();
+            reRenderGame(true); // Show modal if game ends
         }
 
         function renderSolvedGroup(group) {
@@ -693,15 +688,11 @@
         function gameWon() {
             if (gameState.gameWon) return;
             gameState.gameWon = true;
-            saveGameState();
-            reRenderGame();
         }
 
         function gameOver() {
             if (gameState.gameWon) return;
             gameState.gameWon = true;
-            saveGameState();
-            reRenderGame();
         }
 
         function showModal(emoji, title, message) {
@@ -712,16 +703,19 @@
             document.getElementById('modal-overlay').classList.add('show');
         }
 
+        // --- MODIFIED: Renders the new detailed guess grid ---
         function renderGuessHistory() {
             const guessGrid = document.getElementById('modal-guess-grid');
             guessGrid.innerHTML = '<h4>Your Guesses:</h4>';
             gameState.guessHistory.forEach(guess => {
-                const square = document.createElement('div');
-                square.className = 'modal-guess-square';
-                if (guess.type === 'correct') square.classList.add('guess-correct');
-                else if (guess.type === 'one-away') square.classList.add('guess-one-away');
-                else square.classList.add('guess-wrong');
-                guessGrid.appendChild(square);
+                const rowEl = document.createElement('div');
+                rowEl.className = 'modal-guess-row';
+                guess.forEach(difficulty => {
+                    const square = document.createElement('div');
+                    square.className = `modal-guess-square guess-sq-${difficulty}`;
+                    rowEl.appendChild(square);
+                });
+                guessGrid.appendChild(rowEl);
             });
         }
 
@@ -741,37 +735,28 @@
             renderGrid();
         }
 
+        // --- MODIFIED: Creates the new share text format ---
         function shareResults() {
-            const today = new Date();
-            const dateString = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-            const link = 'https://historyconnections.netlify.app/';
-
-            // --- MODIFIED: Create a grid of guesses ---
             let guessGridText = "";
-            gameState.guessHistory.forEach(guess => {
-                if (guess.type === 'correct') guessGridText += "🟩";
-                else if (guess.type === 'one-away') guessGridText += "🟨";
-                else guessGridText += "🟪"; // Using purple for incorrect
-            });
-
-            const solvedEmoji = ['🟨', '🟩', '🟦', '🟪'];
-            const difficultyOrder = ['yellow', 'green', 'blue', 'purple'];
-            let solvedGridText = '';
-
-            const sortedGroups = [...gameState.solvedGroups].sort((a, b) => {
-                return difficultyOrder.indexOf(a.difficulty) - difficultyOrder.indexOf(b.difficulty);
-            });
-            sortedGroups.forEach(group => {
-                const difficultyIndex = difficultyOrder.indexOf(group.difficulty);
-                solvedGridText += solvedEmoji[difficultyIndex].repeat(4) + '\n';
+            const emojiMap = {
+                yellow: '🟨',
+                green: '🟩',
+                blue: '🟦',
+                purple: '🟪'
+            };
+            gameState.guessHistory.forEach(guessRow => {
+                guessRow.forEach(difficulty => {
+                    guessGridText += emojiMap[difficulty];
+                });
+                guessGridText += '\n';
             });
             
-            let result = `History Connections - ${dateString}\nGuesses: ${guessGridText}\n\n${solvedGridText}\nPlay the game:\n${link}`;
+            const resultText = `History Connections #${todaysPuzzle.puzzleNumber}\n${guessGridText}`;
 
             if (navigator.share) {
-                navigator.share({ title: 'History Connections Results', text: result });
+                navigator.share({ title: 'History Connections Results', text: resultText });
             } else {
-                navigator.clipboard.writeText(result).then(() => {
+                navigator.clipboard.writeText(resultText).then(() => {
                     showMessage('Results copied to clipboard!', 'success');
                 });
             }
@@ -782,13 +767,9 @@
         document.getElementById('shuffle').addEventListener('click', shuffleWords);
         document.getElementById('deselect').addEventListener('click', deselectAll);
         document.getElementById('modal-share-btn').addEventListener('click', shareResults);
-        document.getElementById('modal-close-container').addEventListener('click', hideModal); // MODIFIED
-        document.getElementById('view-results-btn').addEventListener('click', () => { // NEW
-            if (gameState.mistakes >= 4) {
-                showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
-            } else {
-                showModal('🎉', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
-            }
+        document.getElementById('modal-close-container').addEventListener('click', hideModal);
+        document.getElementById('view-results-btn').addEventListener('click', () => {
+            reRenderGame(true); // Re-run the logic to show the end game modal
         });
         
         document.getElementById('modal-overlay').addEventListener('click', (e) => {
