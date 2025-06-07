@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History Connections</title>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5432833841650334"
+         crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -354,7 +357,6 @@
             gap: 6px;
         }
         
-        /* --- NEW: Row container for guess squares --- */
         .modal-guess-row {
             display: flex;
             gap: 6px;
@@ -367,7 +369,6 @@
             display: inline-block;
         }
         
-        /* --- NEW: Specific background colors for guess squares --- */
         .guess-sq-yellow { background-color: #f1c40f; }
         .guess-sq-green { background-color: #2ecc71; }
         .guess-sq-blue { background-color: #3498db; }
@@ -618,7 +619,6 @@
                 return;
             }
 
-            // --- NEW: Record the detailed guess representation ---
             const guessRepresentation = gameState.selectedWords.map(word => {
                 return todaysPuzzle.groups.find(group => group.words.includes(word)).difficulty;
             });
@@ -703,7 +703,6 @@
             document.getElementById('modal-overlay').classList.add('show');
         }
 
-        // --- MODIFIED: Renders the new detailed guess grid ---
         function renderGuessHistory() {
             const guessGrid = document.getElementById('modal-guess-grid');
             guessGrid.innerHTML = '<h4>Your Guesses:</h4>';
@@ -735,7 +734,6 @@
             renderGrid();
         }
 
-        // --- MODIFIED: Creates the new share text format ---
         function shareResults() {
             let guessGridText = "";
             const emojiMap = {
@@ -769,7 +767,7 @@
         document.getElementById('modal-share-btn').addEventListener('click', shareResults);
         document.getElementById('modal-close-container').addEventListener('click', hideModal);
         document.getElementById('view-results-btn').addEventListener('click', () => {
-            reRenderGame(true); // Re-run the logic to show the end game modal
+            reRenderGame(true);
         });
         
         document.getElementById('modal-overlay').addEventListener('click', (e) => {
