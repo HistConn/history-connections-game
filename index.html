@@ -13,23 +13,24 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #FDF6EC; /* CHANGED: Parchment background */
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #333;
+            color: #3d3d3d; /* CHANGED: Darker text for readability */
         }
 
         .game-container {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(46, 60, 70, 0.15); /* CHANGED: Shadow to match navy */
             max-width: 600px;
             width: 90%;
             position: relative;
             overflow: hidden;
+            border: 1px solid #e0d9cf;
         }
 
         .game-container::before {
@@ -38,23 +39,22 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #f39c12, #e74c3c, #9b59b6, #3498db);
+            height: 5px;
+             /* CHANGED: Gradient to match new theme */
+            background: linear-gradient(90deg, #A57336, #8C5A2D, #2E3C46);
         }
 
         h1 {
             text-align: center;
             font-size: 2.5rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #2E3C46; /* CHANGED: Deep Navy for title */
             margin-bottom: 10px;
         }
 
         .subtitle {
             text-align: center;
-            color: #666;
+            color: #555; /* CHANGED: Darker subtitle */
             margin-bottom: 25px;
             font-size: 1.1rem;
         }
@@ -67,7 +67,7 @@
         }
 
         .stat {
-            background: #f8f9fa;
+            background: #fdfaf6;
             padding: 12px;
             border-radius: 12px;
             text-align: center;
@@ -78,7 +78,7 @@
 
         .stat:hover {
             transform: translateY(-2px);
-            border-color: #667eea;
+            border-color: #A57336; /* CHANGED: Bronze hover */
         }
 
         .stat-value {
@@ -101,7 +101,7 @@
         }
 
         .word-card {
-            background: #f8f9fa;
+            background: #fdfaf6;
             border: 2px solid #e9ecef;
             border-radius: 12px;
             padding: 15px 10px;
@@ -111,34 +111,18 @@
             font-weight: 600;
             font-size: 0.95rem;
             position: relative;
-            overflow: hidden;
-        }
-
-        .word-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(103, 126, 234, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .word-card:hover::before {
-            left: 100%;
         }
 
         .word-card:hover {
             transform: translateY(-3px);
-            border-color: #667eea;
-            box-shadow: 0 8px 20px rgba(103, 126, 234, 0.2);
+            border-color: #A57336; /* CHANGED: Bronze hover */
+            box-shadow: 0 8px 20px rgba(165, 115, 54, 0.15); /* CHANGED: Bronze shadow */
         }
 
         .word-card.selected {
-            background: #667eea;
+            background: #8C5A2D; /* CHANGED: Deep Bronze for selected */
             color: white;
-            border-color: #5a67d8;
+            border-color: #A57336; /* CHANGED: Lighter bronze border */
             transform: translateY(-2px);
         }
 
@@ -163,6 +147,7 @@
             grid-row: 2;
         }
 
+        /* These category colors are kept for gameplay clarity */
         .difficulty-yellow { background: linear-gradient(135deg, #f1c40f, #f39c12); }
         .difficulty-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
         .difficulty-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
@@ -203,42 +188,29 @@
             position: relative;
             overflow: hidden;
         }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: all 0.3s ease;
-        }
-
-        .btn:active::before {
-            width: 300px;
-            height: 300px;
+        
+        .btn:active {
+            transform: translateY(1px);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background-color: #8C5A2D; /* CHANGED: Deep Bronze */
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(103, 126, 234, 0.4);
+            background-color: #A57336; /* CHANGED: Lighter bronze on hover */
+            box-shadow: 0 8px 20px rgba(140, 90, 45, 0.3); /* CHANGED: Bronze shadow */
         }
 
         .btn-secondary {
-            background: #6c757d;
+            background-color: #2E3C46; /* CHANGED: Deep Navy */
             color: white;
         }
 
         .btn-secondary:hover {
-            background: #5a6268;
+            background-color: #415663; /* CHANGED: Lighter navy on hover */
             transform: translateY(-2px);
         }
 
@@ -259,21 +231,21 @@
         }
 
         .message.success {
-            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            background: #d4edda;
             color: #155724;
-            border: 2px solid #b8dacd;
+            border: 1px solid #c3e6cb;
         }
 
         .message.warning {
-            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            background: #fff3cd;
             color: #856404;
-            border: 2px solid #ffeaa7;
+            border: 1px solid #ffeeba;
         }
 
         .message.error {
-            background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+            background: #f8d7da;
             color: #721c24;
-            border: 2px solid #f1b0b7;
+            border: 1px solid #f5c6cb;
         }
 
         .modal-overlay {
@@ -282,7 +254,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(46, 60, 70, 0.6); /* CHANGED: Navy overlay */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -324,6 +296,7 @@
             font-size: 1.5rem;
             font-weight: bold;
             margin: 0;
+            color: #2E3C46; /* CHANGED: Navy title */
         }
 
         .modal-close {
@@ -403,7 +376,7 @@
         }
 
         .share-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
+            background-color: #8C5A2D; /* CHANGED: Deep Bronze */
             color: white;
             padding: 12px 24px;
             border: none;
@@ -417,7 +390,8 @@
 
         .share-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.4);
+            background-color: #A57336; /* CHANGED: Lighter bronze on hover */
+            box-shadow: 0 8px 20px rgba(140, 90, 45, 0.3); /* CHANGED: Bronze shadow */
         }
 
         .modal-emoji {
