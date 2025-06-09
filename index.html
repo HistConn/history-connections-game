@@ -628,4 +628,163 @@
             }
 
             const guessRepresentation = gameState.selectedWords.map(word => {
-                return todaysPuzzle.groups.find(
+                return todaysPuzzle.groups.find(group => group.words.includes(word)).difficulty;
+            });
+            gameState.guessHistory.push(guessRepresentation);
+
+            const correctGroup = todaysPuzzle.groups.find(group => 
+                !gameState.solvedGroups.some(sg => sg.category === group.category) &&
+                gameState.selectedWords.every(word => group.words.includes(word))
+            );
+
+            if (correctGroup) {
+                gameState.solvedGroups.push(correctGroup);
+                gameState.words = gameState.words.filter(word => !correctGroup.words.includes(word));
+                showMessage(`Correct! ${correctGroup.category}`, 'success');
+                if (gameState.solvedGroups.length === 4) gameWon();
+            } else {
+                gameState.previousGuesses.push(sortedGuess);
+                const oneAwayGroup = todaysPuzzle.groups.some(group => 
+                    !gameState.solvedGroups.some(sg => sg.category === group.category) &&
+                    gameState.selectedWords.filter(word => group.words.includes(word)).length === 3
+                );
+                if (oneAwayGroup) {
+                    showMessage('One away! Try again.', 'warning');
+                } else {
+                    showMessage('Not quite right. Try again!', 'error');
+                }
+                gameState.mistakes++;
+                if (gameState.mistakes >= 4) gameOver();
+            }
+            gameState.selectedWords = [];
+            saveGameState();
+            reRenderGame(true); // Show modal if game ends
+        }
+
+        function renderSolvedGroup(group) {
+            const solvedGroupsContainer = document.getElementById('solved-groups');
+            const groupDiv = document.createElement('div');
+            groupDiv.className = `solved-group difficulty-${group.difficulty}`;
+            const orderedWords = group.words.sort((a,b) => todaysPuzzle.words.indexOf(a) - todaysPuzzle.words.indexOf(b));
+            orderedWords.forEach(word => {
+                const wordCard = document.createElement('div');
+                wordCard.className = 'word-card correct';
+                wordCard.textContent = word;
+                groupDiv.appendChild(wordCard);
+            });
+            const title = document.createElement('div');
+            title.className = 'category-title';
+            title.textContent = group.category;
+            groupDiv.appendChild(title);
+            solvedGroupsContainer.appendChild(groupDiv);
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type} show`;
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 3000);
+        }
+
+        function updateStats() {
+            document.getElementById('mistakes').textContent = gameState.mistakes;
+            document.getElementById('groups-found').textContent = gameState.solvedGroups.length;
+        }
+
+        function gameWon() {
+            if (gameState.gameWon) return;
+            gameState.gameWon = true;
+        }
+
+        function gameOver() {
+            if (gameState.gameWon) return;
+            gameState.gameWon = true;
+        }
+
+        function showModal(emoji, title, message) {
+            document.getElementById('modal-emoji').textContent = emoji;
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            renderGuessHistory();
+            document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function renderGuessHistory() {
+            const guessGrid = document.getElementById('modal-guess-grid');
+            guessGrid.innerHTML = '<h4>Your Guesses:</h4>';
+            gameState.guessHistory.forEach(guess => {
+                const rowEl = document.createElement('div');
+                rowEl.className = 'modal-guess-row';
+                guess.forEach(difficulty => {
+                    const square = document.createElement('div');
+                    square.className = `modal-guess-square guess-sq-${difficulty}`;
+                    rowEl.appendChild(square);
+                });
+                guessGrid.appendChild(rowEl);
+            });
+        }
+
+        function hideModal() {
+            document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        function shuffleWords() {
+            if (gameState.gameWon) return;
+            shuffleArray(gameState.words);
+            renderGrid();
+        }
+
+        function deselectAll() {
+            if (gameState.gameWon) return;
+            gameState.selectedWords = [];
+            renderGrid();
+        }
+
+        function shareResults() {
+            let guessGridText = "";
+            const emojiMap = {
+                yellow: '🟨',
+                green: '🟩',
+                blue: '🟦',
+                purple: '🟪'
+            };
+            gameState.guessHistory.forEach(guessRow => {
+                guessRow.forEach(difficulty => {
+                    guessGridText += emojiMap[difficulty];
+                });
+                guessGridText += '\n';
+            });
+            
+            const resultText = `History Connections #${todaysPuzzle.puzzleNumber}\n${guessGridText}`;
+
+            if (navigator.share) {
+                navigator.share({ title: 'History Connections Results', text: resultText });
+            } else {
+                navigator.clipboard.writeText(resultText).then(() => {
+                    showMessage('Results copied to clipboard!', 'success');
+                });
+            }
+        }
+
+        // Event listeners
+        document.getElementById('submit').addEventListener('click', submitGuess);
+        document.getElementById('shuffle').addEventListener('click', shuffleWords);
+        document.getElementById('deselect').addEventListener('click', deselectAll);
+        document.getElementById('modal-share-btn').addEventListener('click', shareResults);
+        document.getElementById('modal-close-container').addEventListener('click', hideModal);
+        document.getElementById('view-results-btn').addEventListener('click', () => {
+            reRenderGame(true);
+        });
+        
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-overlay') {
+                hideModal();
+            }
+        });
+
+        loadAndInitializeGame();
+    </script>
+</body>
+</html>
