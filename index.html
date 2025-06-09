@@ -16,7 +16,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #FDF6EC;
+            background-color: #fffefb; /* CHANGED: A very light off-white for the main background */
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -25,7 +25,7 @@
         }
 
         .game-container {
-            background: white;
+            background-color: #FDF6EC; /* CHANGED: Parchment background for the container */
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(46, 60, 70, 0.15);
@@ -69,7 +69,7 @@
         }
 
         .stat {
-            background: #fdfaf6;
+            background: #fbf1e3; /* CHANGED: Slightly different shade for contrast */
             padding: 12px;
             border-radius: 12px;
             text-align: center;
@@ -103,8 +103,9 @@
         }
 
         .word-card {
-            background: #fdfaf6;
-            border: 2px solid #e9ecef;
+            background-color: #8C5A2D; /* CHANGED: Bronze background for cards */
+            color: #FDF6EC; /* CHANGED: Light text for cards */
+            border: 2px solid #A57336; /* CHANGED: Lighter bronze border */
             border-radius: 12px;
             padding: 15px 10px;
             text-align: center;
@@ -117,15 +118,15 @@
 
         .word-card:hover {
             transform: translateY(-3px);
-            border-color: #A57336;
-            box-shadow: 0 8px 20px rgba(165, 115, 54, 0.15);
+            background-color: #A57336; /* CHANGED: Lighter bronze on hover */
+            border-color: #2E3C46; /* CHANGED: Navy border on hover */
         }
 
         .word-card.selected {
-            background: #8C5A2D;
-            color: white;
-            border-color: #A57336;
-            transform: translateY(-2px);
+            background-color: #FDF6EC; /* CHANGED: Inverted colors for selected state */
+            color: #8C5A2D; /* CHANGED: Bronze text */
+            border-color: #2E3C46; /* CHANGED: Navy border */
+            transform: translateY(-2px) scale(1.02);
         }
 
         .word-card.correct {
