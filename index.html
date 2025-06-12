@@ -434,7 +434,7 @@
 <body>
     <div class="game-container">
         <h1>History Connections</h1>
-        <p class="subtitle">Find groups of 4 related historical items</p>
+        <p class="subtitle">Find groups of 4 related historical items. User ID: <span id="userId"></span></p>
         
         <div class="stats">
             <div class="stat">
@@ -446,7 +446,7 @@
                 <div class="stat-label">Groups Found</div>
             </div>
             <div class="stat">
-                <div class="stat-value" id="streak">1</div>
+                <div class="stat-value" id="streak">0</div>
                 <div class="stat-label">Daily Streak</div>
             </div>
         </div>
@@ -480,63 +480,125 @@
             </div>
         </div>
     </div>
+    
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <script>
-        const todaysPuzzle = {
-            puzzleNumber: 1, // Added for sharing context
-            words: [
-                'NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL',
-                'SWORD', 'SPEAR', 'BOW', 'CATAPULT',
-                'ROME', 'ATHENS', 'SPARTA', 'TROY',
-                'PYRAMID', 'COLOSSEUM', 'PARTHENON', 'STONEHENGE'
-            ],
-            groups: [
-                {
-                    category: 'Famous Military Leaders',
-                    words: ['NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL'],
-                    difficulty: 'yellow'
-                },
-                {
-                    category: 'Ancient Weapons',
-                    words: ['SWORD', 'SPEAR', 'BOW', 'CATAPULT'],
-                    difficulty: 'green'
-                },
-                {
-                    category: 'Ancient Greek Cities',
-                    words: ['ROME', 'ATHENS', 'SPARTA', 'TROY'],
-                    difficulty: 'blue'
-                },
-                {
-                    category: 'Ancient Monuments',
-                    words: ['PYRAMID', 'COLOSSEUM', 'PARTHENON', 'STONEHENGE'],
-                    difficulty: 'purple'
-                }
-            ]
+        // --- Your Web App's Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9bcjwfS5Td28Z0dFfEdDaVwTiBI0FHM4",
+            authDomain: "history-connections-6c6e3.firebaseapp.com",
+            projectId: "history-connections-6c6e3",
+            storageBucket: "history-connections-6c6e3.firebasestorage.app",
+            messagingSenderId: "818831139109",
+            appId: "1:818831139109:web:db945934d3e2e39dd07acc",
+            measurementId: "G-W4XX10J2T8"
         };
+        const appId = firebaseConfig.projectId;
 
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let todaysPuzzle;
         let gameState = {};
+        let userId;
 
-        function saveGameState() {
-            const today = new Date().toISOString().split('T')[0];
-            const dataToSave = { date: today, state: gameState };
-            localStorage.setItem('historyConnectionsState', JSON.stringify(dataToSave));
-        }
-
-        function loadAndInitializeGame() {
-            const today = new Date().toISOString().split('T')[0];
-            const savedDataJSON = localStorage.getItem('historyConnectionsState');
-            let savedData;
-            if (savedDataJSON) {
-                savedData = JSON.parse(savedDataJSON);
+        // --- Authentication ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                document.getElementById('userId').textContent = userId;
+                await loadPuzzleAndGameState();
             }
-            if (savedData && savedData.date === today) {
-                gameState = savedData.state;
-                reRenderGame(false); // Don't show modal on initial load
-            } else {
-                startNewGame();
-            }
-        }
+        });
         
+        async function signIn() {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Error signing in:", error);
+                showMessage("Could not connect to the server. Please refresh.", "error");
+            }
+        }
+
+
+        // --- Data Fetching and Initialization ---
+        async function loadPuzzleAndGameState() {
+            const today = new Date().toISOString().split('T')[0];
+            try {
+                // Fetch today's puzzle
+                const puzzleDocRef = doc(db, `/artifacts/${appId}/public/data/puzzles`, today);
+                const puzzleDocSnap = await getDoc(puzzleDocRef);
+
+                if (puzzleDocSnap.exists()) {
+                    todaysPuzzle = puzzleDocSnap.data();
+                } else {
+                    console.log("No puzzle for today. Seeding a default puzzle.");
+                    await seedDefaultPuzzle(today);
+                    const newPuzzleDocSnap = await getDoc(puzzleDocRef);
+                    todaysPuzzle = newPuzzleDocSnap.data();
+                }
+
+                // Fetch user's game state for today
+                const gameStateDocRef = doc(db, `/artifacts/${appId}/users/${userId}/gameState`, today);
+                const gameStateDocSnap = await getDoc(gameStateDocRef);
+                
+                if (gameStateDocSnap.exists()) {
+                    gameState = gameStateDocSnap.data();
+                    reRenderGame(false);
+                } else {
+                    startNewGame();
+                }
+                 // Fetch and display user stats (like streak)
+                const userStatsDocRef = doc(db, `/artifacts/${appId}/users/${userId}/stats/general`);
+                const userStatsDocSnap = await getDoc(userStatsDocRef);
+                if (userStatsDocSnap.exists()) {
+                    document.getElementById('streak').textContent = userStatsDocSnap.data().streak || 0;
+                }
+
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+                showMessage("Could not load game data. Please refresh.", "error");
+            }
+        }
+
+        async function seedDefaultPuzzle(dateString) {
+            const defaultPuzzle = {
+                puzzleNumber: Math.floor(Math.random() * 1000), // Or a sequential number
+                words: [
+                    'NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL',
+                    'SWORD', 'SPEAR', 'BOW', 'CATAPULT',
+                    'ROME', 'ATHENS', 'SPARTA', 'CARTHAGE', // Corrected Troy to Carthage for better grouping
+                    'PYRAMID', 'COLOSSEUM', 'PARTHENON', 'STONEHENGE'
+                ],
+                groups: [
+                    { category: 'Famous Military Leaders', words: ['NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL'], difficulty: 'yellow' },
+                    { category: 'Ancient Weapons', words: ['SWORD', 'SPEAR', 'BOW', 'CATAPULT'], difficulty: 'green' },
+                    { category: 'Major Ancient Cities', words: ['ROME', 'ATHENS', 'SPARTA', 'CARTHAGE'], difficulty: 'blue' },
+                    { category: 'Ancient Monuments', words: ['PYRAMID', 'COLOSSEUM', 'PARTHENON', 'STONEHENGE'], difficulty: 'purple' }
+                ]
+            };
+            const puzzleDocRef = doc(db, `/artifacts/${appId}/public/data/puzzles`, dateString);
+            await setDoc(puzzleDocRef, defaultPuzzle);
+        }
+
+        async function saveGameState() {
+            if (!userId || !todaysPuzzle) return;
+            const today = new Date().toISOString().split('T')[0];
+            const gameStateDocRef = doc(db, `/artifacts/${appId}/users/${userId}/gameState`, today);
+            try {
+                await setDoc(gameStateDocRef, gameState);
+            } catch (error) {
+                console.error("Error saving game state:", error);
+            }
+        }
+
         function startNewGame() {
             gameState = {
                 words: [...todaysPuzzle.words],
@@ -545,14 +607,18 @@
                 mistakes: 0,
                 gameWon: false,
                 previousGuesses: [],
-                guessHistory: [] // Will now store arrays of difficulties
+                guessHistory: []
             };
             shuffleArray(gameState.words);
             saveGameState();
             reRenderGame(false);
         }
-
+        
+        // --- Game Logic (mostly unchanged, just calls saveGameState) ---
         function reRenderGame(showEndGameModal) {
+            if (!todaysPuzzle) { // Guard against rendering before puzzle loads
+                return;
+            }
             document.getElementById('solved-groups').innerHTML = '';
             document.getElementById('grid').innerHTML = '';
             gameState.solvedGroups.forEach(group => renderSolvedGroup(group));
@@ -596,15 +662,20 @@
         function renderGrid() {
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
+            const remainingWords = todaysPuzzle.words.filter(word => !gameState.solvedGroups.some(g => g.words.includes(word)));
+            
+            // Use the shuffled order from gameState
             gameState.words.forEach(word => {
-                const wordCard = document.createElement('div');
-                wordCard.className = 'word-card';
-                wordCard.textContent = word;
-                wordCard.addEventListener('click', () => toggleWord(word));
-                if (gameState.selectedWords.includes(word)) {
-                    wordCard.classList.add('selected');
+                if (remainingWords.includes(word)) {
+                     const wordCard = document.createElement('div');
+                    wordCard.className = 'word-card';
+                    wordCard.textContent = word;
+                    wordCard.addEventListener('click', () => toggleWord(word));
+                    if (gameState.selectedWords.includes(word)) {
+                        wordCard.classList.add('selected');
+                    }
+                    grid.appendChild(wordCard);
                 }
-                grid.appendChild(wordCard);
             });
         }
 
@@ -634,12 +705,12 @@
 
             const correctGroup = todaysPuzzle.groups.find(group => 
                 !gameState.solvedGroups.some(sg => sg.category === group.category) &&
-                gameState.selectedWords.every(word => group.words.includes(word))
+                gameState.selectedWords.every(word => group.words.includes(word)) &&
+                gameState.selectedWords.length === group.words.length
             );
 
             if (correctGroup) {
                 gameState.solvedGroups.push(correctGroup);
-                gameState.words = gameState.words.filter(word => !correctGroup.words.includes(word));
                 showMessage(`Correct! ${correctGroup.category}`, 'success');
                 if (gameState.solvedGroups.length === 4) gameWon();
             } else {
@@ -665,7 +736,7 @@
             const solvedGroupsContainer = document.getElementById('solved-groups');
             const groupDiv = document.createElement('div');
             groupDiv.className = `solved-group difficulty-${group.difficulty}`;
-            const orderedWords = group.words.sort((a,b) => todaysPuzzle.words.indexOf(a) - todaysPuzzle.words.indexOf(b));
+            const orderedWords = group.words; // No need to re-sort
             orderedWords.forEach(word => {
                 const wordCard = document.createElement('div');
                 wordCard.className = 'word-card correct';
@@ -696,12 +767,50 @@
         function gameWon() {
             if (gameState.gameWon) return;
             gameState.gameWon = true;
+            updateStreak();
         }
 
         function gameOver() {
             if (gameState.gameWon) return;
             gameState.gameWon = true;
+            // Optionally reset streak on game over
         }
+        
+        async function updateStreak() {
+            const userStatsDocRef = doc(db, `/artifacts/${appId}/users/${userId}/stats/general`);
+            const today = new Date().toISOString().split('T')[0];
+            
+            try {
+                const docSnap = await getDoc(userStatsDocRef);
+                let newStreak = 1;
+                let lastWinDate = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    lastWinDate = data.lastWinDate;
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayString = yesterday.toISOString().split('T')[0];
+
+                    if(lastWinDate === yesterdayString) {
+                         newStreak = (data.streak || 0) + 1;
+                    } else if(lastWinDate !== today) {
+                        newStreak = 1; // Reset if they missed a day
+                    } else {
+                        newStreak = data.streak; // Already won today, don't increment
+                    }
+                }
+                
+                if (lastWinDate !== today) {
+                    await setDoc(userStatsDocRef, { streak: newStreak, lastWinDate: today }, { merge: true });
+                    document.getElementById('streak').textContent = newStreak;
+                }
+
+            } catch (error) {
+                console.error("Error updating streak:", error);
+            }
+        }
+
 
         function showModal(emoji, title, message) {
             document.getElementById('modal-emoji').textContent = emoji;
@@ -759,23 +868,32 @@
             
             const resultText = `History Connections #${todaysPuzzle.puzzleNumber}\n${guessGridText}`;
 
-            if (navigator.share) {
-                navigator.share({ title: 'History Connections Results', text: resultText });
-            } else {
-                navigator.clipboard.writeText(resultText).then(() => {
-                    showMessage('Results copied to clipboard!', 'success');
-                });
+             // Use the Clipboard API for more robust copying
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = resultText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                showMessage('Results copied to clipboard!', 'success');
+            } catch (err) {
+                showMessage('Failed to copy results.', 'error');
             }
+            document.body.removeChild(tempTextArea);
         }
 
-        // Event listeners
+        // --- Event listeners ---
         document.getElementById('submit').addEventListener('click', submitGuess);
         document.getElementById('shuffle').addEventListener('click', shuffleWords);
         document.getElementById('deselect').addEventListener('click', deselectAll);
         document.getElementById('modal-share-btn').addEventListener('click', shareResults);
         document.getElementById('modal-close-container').addEventListener('click', hideModal);
         document.getElementById('view-results-btn').addEventListener('click', () => {
-            reRenderGame(true);
+            if(gameState.mistakes >= 4) {
+                showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
+            } else {
+                showModal('🎉', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
+            }
         });
         
         document.getElementById('modal-overlay').addEventListener('click', (e) => {
@@ -783,8 +901,9 @@
                 hideModal();
             }
         });
-
-        loadAndInitializeGame();
+        
+        // --- Start the application ---
+        signIn();
     </script>
 </body>
 </html>
