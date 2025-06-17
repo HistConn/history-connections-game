@@ -434,7 +434,7 @@
 <body>
     <div class="game-container">
         <h1>History Connections</h1>
-        <p class="subtitle">Find groups of 4 related historical items. User ID: <span id="userId"></span></p>
+        <p class="subtitle">Find groups of 4 related historical items</p>
         
         <div class="stats">
             <div class="stat">
@@ -512,7 +512,7 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
-                document.getElementById('userId').textContent = userId;
+                // The User ID is no longer displayed on the page
                 await loadPuzzleAndGameState();
             }
         });
