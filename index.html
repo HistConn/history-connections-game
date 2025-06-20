@@ -9,7 +9,7 @@
          crossorigin="anonymous"></script>
     <style>
         /* --- NEW: Font Import --- */
-        @import url('https://fonts.googleapis.com/css2?family=Old+Standard+TT:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700;900&display=swap');
 
         * {
             margin: 0;
@@ -19,13 +19,14 @@
 
         body {
             /* --- MODIFIED: Font Family Changed --- */
-            font-family: 'Old Standard TT', serif;
+            font-family: 'Playfair Display SC', serif;
             background-color: #fffefb;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             color: #3d3d3d;
+            font-weight: 400; /* Regular weight for body text */
         }
 
         .game-container {
@@ -39,6 +40,29 @@
             overflow: hidden;
             border: 1px solid #e0d9cf;
         }
+        
+        /* --- NEW: Background Wreath --- */
+        .game-container::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 80%;
+            transform: translate(-50%, -50%);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 50,5 A 45,45 0 1 1 50,95 A 45,45 0 1 1 50,5 M 20,50 C 20,27.9 33.4,10 50,10 C 66.6,10 80,27.9 80,50 C 80,72.1 66.6,90 50,90 C 33.4,90 20,72.1 20,50 M 50,12 C 34.5,12 22,28.9 22,50 C 22,71.1 34.5,88 50,88 C 65.5,88 78,71.1 78,50 C 78,28.9 65.5,12 50,12" fill="%23A57336" transform="scale(0.8) translate(12.5, 12.5)"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.05;
+            z-index: 0;
+        }
+
+        .game-content {
+            position: relative;
+            z-index: 1;
+        }
+
 
         .game-container::before {
             content: '';
@@ -50,19 +74,38 @@
             background: linear-gradient(90deg, #A57336, #8C5A2D, #2E3C46);
         }
 
-        h1 {
+        /* --- MODIFIED: Title Styling --- */
+        .title-container {
             text-align: center;
-            font-size: 2.8rem; /* Adjusted for new font */
-            font-weight: 700; /* Bold weight for the title */
-            color: #2E3C46;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
+        
+        .logo-text {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #2E3C46;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .title-laurel {
+            width: 0.8em;
+            height: 0.8em;
+            fill: #A57336;
+        }
+
+        .title-laurel.right {
+            transform: scaleX(-1);
+        }
+
 
         .subtitle {
             text-align: center;
             color: #555;
             margin-bottom: 25px;
-            font-size: 1.2rem; /* Adjusted for new font */
+            font-size: 1.2rem;
         }
 
         .stats {
@@ -94,7 +137,7 @@
         }
 
         .stat-label {
-            font-size: 1rem; /* Adjusted for new font */
+            font-size: 1rem;
             color: #666;
             margin-top: 4px;
         }
@@ -106,30 +149,30 @@
             margin-bottom: 25px;
         }
 
+        /* --- MODIFIED: Word Card Styling --- */
         .word-card {
-            background-color: #8C5A2D;
-            color: #FDF6EC;
-            border: 2px solid #A57336;
+            background-color: #fff;
+            color: #A57336;
+            border: 2px solid #e0d9cf;
             border-radius: 12px;
             padding: 15px 10px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 700;
-            font-size: 1rem; /* Adjusted for new font */
+            font-size: 1rem;
             position: relative;
             text-transform: uppercase;
         }
 
         .word-card:hover {
             transform: translateY(-3px);
-            background-color: #A57336;
-            border-color: #2E3C46;
+            border-color: #A57336;
         }
 
         .word-card.selected {
-            background-color: #FDF6EC;
-            color: #8C5A2D;
+            background-color: #A57336;
+            color: #FDF6EC;
             border-color: #2E3C46;
             transform: translateY(-2px) scale(1.02);
         }
@@ -184,9 +227,10 @@
             margin-bottom: 20px;
         }
 
+        /* --- MODIFIED: Button Styling --- */
         .btn {
             padding: 12px 24px;
-            border: none;
+            border: 2px solid #A57336;
             border-radius: 25px;
             font-weight: 700;
             cursor: pointer;
@@ -194,7 +238,7 @@
             font-size: 1rem;
             position: relative;
             overflow: hidden;
-            font-family: 'Old Standard TT', serif;
+            font-family: 'Playfair Display SC', serif;
         }
         
         .btn:active {
@@ -202,24 +246,22 @@
         }
 
         .btn-primary {
-            background-color: #8C5A2D;
+            background-color: #A57336;
             color: white;
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            background-color: #A57336;
-            box-shadow: 0 8px 20px rgba(140, 90, 45, 0.3);
+            background-color: #8C5A2D;
+            border-color: #8C5A2D;
         }
 
         .btn-secondary {
-            background-color: #2E3C46;
-            color: white;
+            background-color: transparent;
+            color: #A57336;
         }
 
         .btn-secondary:hover {
-            background-color: #415663;
-            transform: translateY(-2px);
+            background-color: #fbf1e3;
         }
 
         .message {
@@ -382,7 +424,7 @@
         .guess-sq-purple { background-color: #9b59b6; }
 
         .share-btn {
-            background-color: #8C5A2D;
+            background-color: #A57336;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -392,13 +434,11 @@
             transition: all 0.3s ease;
             width: 100%;
             font-size: 1rem;
-            font-family: 'Old Standard TT', serif;
         }
 
         .share-btn:hover {
             transform: translateY(-2px);
-            background-color: #A57336;
-            box-shadow: 0 8px 20px rgba(140, 90, 45, 0.3);
+            background-color: #8C5A2D;
         }
 
         .modal-emoji {
@@ -410,7 +450,7 @@
             .game-container {
                 padding: 20px;
             }
-            h1 {
+            .logo-text {
                 font-size: 2rem;
             }
             .grid {
@@ -433,35 +473,49 @@
 </head>
 <body>
     <div class="game-container">
-        <h1>History Connections</h1>
-        <p class="subtitle">Find groups of 4 related historical items</p>
-        
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-value" id="mistakes">0</div>
-                <div class="stat-label">Mistakes</div>
+        <div class="game-content">
+            <div class="title-container">
+                <div class="logo-text">
+                    <svg class="title-laurel" viewBox="0 0 24 24"><path fill="currentColor" d="M14.47 15.06c.36-.61.63-1.28.79-2.02.16-.74.24-1.61.24-2.58s-.08-1.84-.24-2.58a6.33 6.33 0 0 0-.79-2.02L12 2.5l-2.47 3.36c-.36.61-.63 1.28-.79 2.02-.16.74-.24 1.61-.24 2.58s.08 1.84.24 2.58c.16.74.43 1.41.79 2.02L12 21.5l2.47-6.44z"/></svg>
+                    <span>History Connections</span>
+                    <svg class="title-laurel right" viewBox="0 0 24 24"><path fill="currentColor" d="M14.47 15.06c.36-.61.63-1.28.79-2.02.16-.74.24-1.61.24-2.58s-.08-1.84-.24-2.58a6.33 6.33 0 0 0-.79-2.02L12 2.5l-2.47 3.36c-.36.61-.63 1.28-.79 2.02-.16.74-.24 1.61-.24 2.58s.08 1.84.24 2.58c.16.74.43 1.41.79 2.02L12 21.5l2.47-6.44z"/></svg>
+                </div>
             </div>
-            <div class="stat">
-                <div class="stat-value" id="groups-found">0</div>
-                <div class="stat-label">Groups Found</div>
+            
+            <p class="subtitle">Find groups of 4 related historical items</p>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="mistakes">0</div>
+                    <div class="stat-label">
+                        <span>Mistakes</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="groups-found">0</div>
+                     <div class="stat-label">
+                        <span>Groups Found</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="streak">0</div>
+                     <div class="stat-label">
+                        <span>Daily Streak</span>
+                    </div>
+                </div>
             </div>
-            <div class="stat">
-                <div class="stat-value" id="streak">0</div>
-                <div class="stat-label">Daily Streak</div>
+
+            <div id="message" class="message"></div>
+            <div id="solved-groups"></div>
+            <div id="grid" class="grid"></div>
+            
+            <div class="controls">
+                <button id="shuffle" class="btn btn-secondary">Shuffle</button>
+                <button id="submit" class="btn btn-primary">Submit</button>
+                <button id="deselect" class="btn btn-secondary">Deselect All</button>
+                <button id="view-results-btn" class="btn btn-primary" style="display: none;">View Results</button>
             </div>
         </div>
-
-        <div id="message" class="message"></div>
-        <div id="solved-groups"></div>
-        <div id="grid" class="grid"></div>
-        
-        <div class="controls">
-            <button id="shuffle" class="btn btn-secondary">Shuffle</button>
-            <button id="submit" class="btn btn-primary">Submit</button>
-            <button id="deselect" class="btn btn-secondary">Deselect All</button>
-            <button id="view-results-btn" class="btn btn-primary" style="display: none;">View Results</button>
-        </div>
-
         <div id="modal-overlay" class="modal-overlay">
             <div class="modal">
                 <div class="modal-header">
@@ -699,7 +753,8 @@
             }
 
             const guessRepresentation = gameState.selectedWords.map(word => {
-                return todaysPuzzle.groups.find(group => group.words.includes(word)).difficulty;
+                const group = todaysPuzzle.groups.find(group => group.words.includes(word));
+                return group ? group.difficulty : 'unknown'; // Safety check
             });
             gameState.guessHistory.push(guessRepresentation);
 
