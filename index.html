@@ -41,22 +41,7 @@
             border: 1px solid #e0d9cf;
         }
         
-        /* --- NEW: Background Wreath --- */
-        .game-container::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 80%;
-            height: 80%;
-            transform: translate(-50%, -50%);
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 50,5 A 45,45 0 1 1 50,95 A 45,45 0 1 1 50,5 M 20,50 C 20,27.9 33.4,10 50,10 C 66.6,10 80,27.9 80,50 C 80,72.1 66.6,90 50,90 C 33.4,90 20,72.1 20,50 M 50,12 C 34.5,12 22,28.9 22,50 C 22,71.1 34.5,88 50,88 C 65.5,88 78,71.1 78,50 C 78,28.9 65.5,12 50,12" fill="%23A57336" transform="scale(0.8) translate(12.5, 12.5)"/></svg>');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            opacity: 0.05;
-            z-index: 0;
-        }
+        /* --- REMOVED: Background Wreath --- */
 
         .game-content {
             position: relative;
@@ -91,8 +76,8 @@
         }
         
         .title-laurel {
-            width: 0.8em;
-            height: 0.8em;
+            width: 1.2em;
+            height: 1.2em;
             fill: #A57336;
         }
 
@@ -476,9 +461,13 @@
         <div class="game-content">
             <div class="title-container">
                 <div class="logo-text">
-                    <svg class="title-laurel" viewBox="0 0 24 24"><path fill="currentColor" d="M14.47 15.06c.36-.61.63-1.28.79-2.02.16-.74.24-1.61.24-2.58s-.08-1.84-.24-2.58a6.33 6.33 0 0 0-.79-2.02L12 2.5l-2.47 3.36c-.36.61-.63 1.28-.79 2.02-.16.74-.24 1.61-.24 2.58s.08 1.84.24 2.58c.16.74.43 1.41.79 2.02L12 21.5l2.47-6.44z"/></svg>
+                    <svg class="title-laurel" viewBox="0 0 100 100">
+                        <path stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none" d="M50,2 C35,10 30,30 30,50 C30,70 35,90 50,98 M48,10 L40,15 M46,25 L35,30 M46,40 L32,45 M48,55 L35,58 M48,70 L35,72 M48,85 L40,88" />
+                    </svg>
                     <span>History Connections</span>
-                    <svg class="title-laurel right" viewBox="0 0 24 24"><path fill="currentColor" d="M14.47 15.06c.36-.61.63-1.28.79-2.02.16-.74.24-1.61.24-2.58s-.08-1.84-.24-2.58a6.33 6.33 0 0 0-.79-2.02L12 2.5l-2.47 3.36c-.36.61-.63 1.28-.79 2.02-.16.74-.24 1.61-.24 2.58s.08 1.84.24 2.58c.16.74.43 1.41.79 2.02L12 21.5l2.47-6.44z"/></svg>
+                    <svg class="title-laurel right" viewBox="0 0 100 100">
+                        <path stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none" d="M50,2 C35,10 30,30 30,50 C30,70 35,90 50,98 M48,10 L40,15 M46,25 L35,30 M46,40 L32,45 M48,55 L35,58 M48,70 L35,72 M48,85 L40,88" />
+                    </svg>
                 </div>
             </div>
             
@@ -683,7 +672,7 @@
                 if (gameState.mistakes >= 4) {
                     showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
                 } else {
-                    showModal('🎉', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
+                    showModal('�', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
                 }
             }
         }
@@ -961,4 +950,4 @@
         signIn();
     </script>
 </body>
-</html>
+</ht�
