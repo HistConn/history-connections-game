@@ -41,8 +41,6 @@
             border: 1px solid #e0d9cf;
         }
         
-        /* --- REMOVED: Background Wreath --- */
-
         .game-content {
             position: relative;
             z-index: 1;
@@ -134,19 +132,28 @@
             margin-bottom: 25px;
         }
 
-        /* --- MODIFIED: Word Card Styling --- */
+        /* --- MODIFIED: Word Card Styling for Uniform Size --- */
         .word-card {
+            /* Sizing and Layout */
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            overflow: hidden;
+            text-align: center;
+            
+            /* Appearance */
             background-color: #fff;
             color: #A57336;
             border: 2px solid #e0d9cf;
             border-radius: 12px;
-            padding: 15px 10px;
-            text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 700;
-            font-size: 1rem;
-            position: relative;
+            font-size: 1rem; /* Base size, will be adjusted by JS */
+            line-height: 1.1;
             text-transform: uppercase;
         }
 
@@ -442,8 +449,8 @@
                 gap: 8px;
             }
             .word-card {
-                padding: 12px 8px;
-                font-size: 0.85rem;
+                /* No padding change needed, flexbox handles it */
+                font-size: 0.9rem; /* Slightly smaller base for mobile */
             }
             .controls {
                 flex-direction: column;
@@ -656,6 +663,27 @@
             saveGameState();
             reRenderGame(false);
         }
+
+        // --- NEW: Function to dynamically adjust font size ---
+        function adjustFontSize(element) {
+            const baseFontSize = parseFloat(getComputedStyle(element).fontSize);
+            let currentFontSize = baseFontSize;
+            
+            // Temporarily set overflow to visible to measure scrollWidth correctly
+            element.style.overflow = 'visible';
+            element.style.whiteSpace = 'nowrap';
+            
+            // Reduce font size until text fits
+            while (element.scrollWidth > element.clientWidth && currentFontSize > 8) { // Minimum font size of 8px
+                currentFontSize--;
+                element.style.fontSize = currentFontSize + 'px';
+            }
+
+            // Reset styles
+            element.style.overflow = 'hidden';
+            element.style.whiteSpace = 'normal';
+        }
+        
         
         // --- Game Logic (mostly unchanged, just calls saveGameState) ---
         function reRenderGame(showEndGameModal) {
@@ -672,7 +700,7 @@
                 if (gameState.mistakes >= 4) {
                     showModal('😔', 'Game Over', 'Better luck with tomorrow\'s puzzle!');
                 } else {
-                    showModal('�', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
+                    showModal('🎉', 'Congratulations!', 'You solved today\'s History Connections puzzle!');
                 }
             }
         }
@@ -718,6 +746,7 @@
                         wordCard.classList.add('selected');
                     }
                     grid.appendChild(wordCard);
+                    adjustFontSize(wordCard); // Adjust font size after adding to DOM
                 }
             });
         }
@@ -786,6 +815,7 @@
                 wordCard.className = 'word-card correct';
                 wordCard.textContent = word;
                 groupDiv.appendChild(wordCard);
+                adjustFontSize(wordCard); // Adjust font size for solved cards too
             });
             const title = document.createElement('div');
             title.className = 'category-title';
@@ -950,4 +980,4 @@
         signIn();
     </script>
 </body>
-</ht�
+</html>
