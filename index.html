@@ -8,7 +8,6 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5432833841650334"
          crossorigin="anonymous"></script>
     <style>
-        /* --- NEW: Font Import --- */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700;900&display=swap');
 
         * {
@@ -18,7 +17,6 @@
         }
 
         body {
-            /* --- MODIFIED: Font Family Changed --- */
             font-family: 'Playfair Display SC', serif;
             background-color: #fffefb;
             min-height: 100vh;
@@ -26,7 +24,7 @@
             justify-content: center;
             align-items: center;
             color: #3d3d3d;
-            font-weight: 400; /* Regular weight for body text */
+            font-weight: 400;
         }
 
         .game-container {
@@ -70,19 +68,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
         }
-        
-        .title-laurel {
-            width: 1.2em;
-            height: 1.2em;
-            fill: #A57336;
-        }
-
-        .title-laurel.right {
-            transform: scaleX(-1);
-        }
-
 
         .subtitle {
             text-align: center;
@@ -132,9 +118,7 @@
             margin-bottom: 25px;
         }
 
-        /* --- MODIFIED: Word Card Styling for Uniform Size --- */
         .word-card {
-            /* Sizing and Layout */
             aspect-ratio: 1 / 1;
             width: 100%;
             display: flex;
@@ -144,7 +128,6 @@
             overflow: hidden;
             text-align: center;
             
-            /* Appearance */
             background-color: #fff;
             color: #A57336;
             border: 2px solid #e0d9cf;
@@ -152,7 +135,7 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 700;
-            font-size: 1rem; /* Base size, will be adjusted by JS */
+            font-size: 1rem;
             line-height: 1.1;
             text-transform: uppercase;
         }
@@ -219,7 +202,6 @@
             margin-bottom: 20px;
         }
 
-        /* --- MODIFIED: Button Styling --- */
         .btn {
             padding: 12px 24px;
             border: 2px solid #A57336;
@@ -449,8 +431,7 @@
                 gap: 8px;
             }
             .word-card {
-                /* No padding change needed, flexbox handles it */
-                font-size: 0.9rem; /* Slightly smaller base for mobile */
+                font-size: 0.9rem;
             }
             .controls {
                 flex-direction: column;
@@ -468,13 +449,7 @@
         <div class="game-content">
             <div class="title-container">
                 <div class="logo-text">
-                    <svg class="title-laurel" viewBox="0 0 100 100">
-                        <path stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none" d="M50,2 C35,10 30,30 30,50 C30,70 35,90 50,98 M48,10 L40,15 M46,25 L35,30 M46,40 L32,45 M48,55 L35,58 M48,70 L35,72 M48,85 L40,88" />
-                    </svg>
                     <span>History Connections</span>
-                    <svg class="title-laurel right" viewBox="0 0 100 100">
-                        <path stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none" d="M50,2 C35,10 30,30 30,50 C30,70 35,90 50,98 M48,10 L40,15 M46,25 L35,30 M46,40 L32,45 M48,55 L35,58 M48,70 L35,72 M48,85 L40,88" />
-                    </svg>
                 </div>
             </div>
             
@@ -562,7 +537,6 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 userId = user.uid;
-                // The User ID is no longer displayed on the page
                 await loadPuzzleAndGameState();
             }
         });
@@ -620,11 +594,11 @@
 
         async function seedDefaultPuzzle(dateString) {
             const defaultPuzzle = {
-                puzzleNumber: Math.floor(Math.random() * 1000), // Or a sequential number
+                puzzleNumber: Math.floor(Math.random() * 1000),
                 words: [
                     'NAPOLEON', 'CAESAR', 'ALEXANDER', 'HANNIBAL',
                     'SWORD', 'SPEAR', 'BOW', 'CATAPULT',
-                    'ROME', 'ATHENS', 'SPARTA', 'CARTHAGE', // Corrected Troy to Carthage for better grouping
+                    'ROME', 'ATHENS', 'SPARTA', 'CARTHAGE',
                     'PYRAMID', 'COLOSSEUM', 'PARTHENON', 'STONEHENGE'
                 ],
                 groups: [
@@ -663,31 +637,25 @@
             saveGameState();
             reRenderGame(false);
         }
-
-        // --- NEW: Function to dynamically adjust font size ---
+        
         function adjustFontSize(element) {
             const baseFontSize = parseFloat(getComputedStyle(element).fontSize);
             let currentFontSize = baseFontSize;
             
-            // Temporarily set overflow to visible to measure scrollWidth correctly
             element.style.overflow = 'visible';
             element.style.whiteSpace = 'nowrap';
             
-            // Reduce font size until text fits
-            while (element.scrollWidth > element.clientWidth && currentFontSize > 8) { // Minimum font size of 8px
+            while (element.scrollWidth > element.clientWidth && currentFontSize > 8) {
                 currentFontSize--;
                 element.style.fontSize = currentFontSize + 'px';
             }
 
-            // Reset styles
             element.style.overflow = 'hidden';
             element.style.whiteSpace = 'normal';
         }
         
-        
-        // --- Game Logic (mostly unchanged, just calls saveGameState) ---
         function reRenderGame(showEndGameModal) {
-            if (!todaysPuzzle) { // Guard against rendering before puzzle loads
+            if (!todaysPuzzle) { 
                 return;
             }
             document.getElementById('solved-groups').innerHTML = '';
@@ -735,7 +703,6 @@
             grid.innerHTML = '';
             const remainingWords = todaysPuzzle.words.filter(word => !gameState.solvedGroups.some(g => g.words.includes(word)));
             
-            // Use the shuffled order from gameState
             gameState.words.forEach(word => {
                 if (remainingWords.includes(word)) {
                      const wordCard = document.createElement('div');
@@ -746,7 +713,7 @@
                         wordCard.classList.add('selected');
                     }
                     grid.appendChild(wordCard);
-                    adjustFontSize(wordCard); // Adjust font size after adding to DOM
+                    adjustFontSize(wordCard);
                 }
             });
         }
@@ -772,7 +739,7 @@
 
             const guessRepresentation = gameState.selectedWords.map(word => {
                 const group = todaysPuzzle.groups.find(group => group.words.includes(word));
-                return group ? group.difficulty : 'unknown'; // Safety check
+                return group ? group.difficulty : 'unknown';
             });
             gameState.guessHistory.push(guessRepresentation);
 
@@ -802,20 +769,20 @@
             }
             gameState.selectedWords = [];
             saveGameState();
-            reRenderGame(true); // Show modal if game ends
+            reRenderGame(true);
         }
 
         function renderSolvedGroup(group) {
             const solvedGroupsContainer = document.getElementById('solved-groups');
             const groupDiv = document.createElement('div');
             groupDiv.className = `solved-group difficulty-${group.difficulty}`;
-            const orderedWords = group.words; // No need to re-sort
+            const orderedWords = group.words;
             orderedWords.forEach(word => {
                 const wordCard = document.createElement('div');
                 wordCard.className = 'word-card correct';
                 wordCard.textContent = word;
                 groupDiv.appendChild(wordCard);
-                adjustFontSize(wordCard); // Adjust font size for solved cards too
+                adjustFontSize(wordCard);
             });
             const title = document.createElement('div');
             title.className = 'category-title';
@@ -847,7 +814,6 @@
         function gameOver() {
             if (gameState.gameWon) return;
             gameState.gameWon = true;
-            // Optionally reset streak on game over
         }
         
         async function updateStreak() {
@@ -869,9 +835,9 @@
                     if(lastWinDate === yesterdayString) {
                          newStreak = (data.streak || 0) + 1;
                     } else if(lastWinDate !== today) {
-                        newStreak = 1; // Reset if they missed a day
+                        newStreak = 1;
                     } else {
-                        newStreak = data.streak; // Already won today, don't increment
+                        newStreak = data.streak;
                     }
                 }
                 
@@ -942,7 +908,6 @@
             
             const resultText = `History Connections #${todaysPuzzle.puzzleNumber}\n${guessGridText}`;
 
-             // Use the Clipboard API for more robust copying
             const tempTextArea = document.createElement('textarea');
             tempTextArea.value = resultText;
             document.body.appendChild(tempTextArea);
